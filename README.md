@@ -1,6 +1,6 @@
 <div align="center">
 
-# MHST3 AreaEcoLevelCustomizer
+# MHST3 NestRarityLocker
 
 </div>
 
@@ -34,10 +34,9 @@ A mod for `Monster Hunter Stories 3` that allows players to lock the nest rarity
 1. Install [REFramework](https://www.nexusmods.com/monsterhunterwilds/mods/93) (≥ Nightly 01228);
 2. Download the mod;
 3. Unzip the mod (**ALL FILES**) to the Monster Hunter Stories 3 **ROOT** directory.
-4. When you install correctly, there will be a directory and a file in your `./reframework`, and they are:
+4. When you install correctly, there will be a file in your `./reframework`, and they are:
 
-    - `./reframework/autorun/LockNestMaxRarity.lua`
-    - `./reframework/autorun/LockNestMaxRarity`
+    - `./reframework/autorun/nest_rarity_locker.lua`
 
 ---
 
@@ -54,10 +53,9 @@ A mod for `Monster Hunter Stories 3` that allows players to lock the nest rarity
 1. 安装[REFramework](https://www.nexusmods.com/monsterhunterwilds/mods/93) （≥ Nightly 01228）；
 2. 下载MOD；
 3. 将MOD解压缩（**所有文件**）后存放至Monster Hunter Stories 3**根目录**；
-4. 当你正确安装MOD后，在你的 `./reframework` 目录下应该有一个文件和一个文件夹：
+4. 当你正确安装MOD后，在你的 `./reframework` 目录下应该有一个文件：
 
-    - `./reframework/autorun/LockNestMaxRarity.lua`
-    - `./reframework/autorun/LockNestMaxRarity`
+    - `./reframework/autorun/nest_rarity_locker.lua`
 
 <div align="center">
 
