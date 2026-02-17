@@ -1,22 +1,24 @@
-local modVersion = "v0.1.0"
+local modVersion = "v0.2.0"
 
 local enumNone = "NONE"
 local enumMax = "MAX"
 local enumUnknown = "UNKNOWN"
 local enumInvalid = "INVALID"
 local nestRandom = "RANDOM"
-local nestMaxRarity = "SUPERRARE"
 
 local nestTypeEnum = nil
 local nestRarityEnum = nil
 local nestTypeRandomFixedId = nil
 local nestMaxRartyFixedId = nil
 local checkedChanged = false
+local comboChanged = false
+local comboSelectedIdx = 1
 local isLoadedUserConfig = false
 
-local configPath = "LockNestMaxRarity.json"
+local configPath = "NestRarityLocker.json"
 local userConfig = {
-    lockedToMax = false
+    enableLock = false,
+    currentSelectRareFixedId = nil
 }
 
 local function isValidEnumName(enumName)
@@ -60,7 +62,8 @@ local function readUserConfig()
     if json ~= nil then
         local jsonContent = json.load_file(configPath)
         if jsonContent then
-            userConfig.lockedToMax = jsonContent.lockedToMax
+            userConfig.enableLock = jsonContent.enableLock
+            userConfig.currentSelectRareFixedId = jsonContent.currentSelectRareFixedId
         else
             json.dump_file(configPath, userConfig)
         end
@@ -95,9 +98,7 @@ re.on_application_entry("UpdateScene", function()
         parseEnumFields("app.NestDef.NEST_RARITY_Fixed", nestRarityEnum, false)
 
         nestTypeRandomFixedId = nestTypeEnum.contentToFixedId[nestRandom]
-        nestMaxRartyFixedId = nestRarityEnum.contentToFixedId[nestMaxRarity]
         print("Random Nest Type Fixed ID: ", nestTypeRandomFixedId)
-        print("Max Nest Rarity Fixed ID: ", nestMaxRartyFixedId)
     end
 
     if not isLoadedUserConfig then
@@ -111,9 +112,10 @@ sdk.hook(sdk.find_type_definition("app.NestController"):get_method(
     function(args)
         local originNestType = sdk.to_int64(args[4])
         local originNestRarity = sdk.to_int64(args[5])
-        if originNestType ~= nil and originNestRarity ~= nil and userConfig.lockedToMax then
+        if originNestType ~= nil and originNestRarity ~= nil and userConfig.enableLock and
+            userConfig.currentSelectRareFixedId ~= nil then
             if originNestType == nestTypeRandomFixedId then
-                args[5] = sdk.to_ptr(nestMaxRartyFixedId)
+                args[5] = sdk.to_ptr(userConfig.currentSelectRareFixedId)
             end
         end
     end, function(retval)
@@ -122,9 +124,31 @@ sdk.hook(sdk.find_type_definition("app.NestController"):get_method(
 
 re.on_draw_ui(function()
     if imgui.tree_node("Nest Rarity Locker") then
-        imgui.text("Version: " .. modVersion .. " | by Egg Targaryen")
+        imgui.text("VERSION: " .. modVersion .. " | by Egg Targaryen")
 
-        checkedChanged, userConfig.lockedToMax = imgui.checkbox("Locked To MAX Rarity", userConfig.lockedToMax)
+        imgui.text("Current Selected Rarity: ")
+        imgui.same_line()
+        if nestRarityEnum ~= nil and nestTypeEnum ~= nil then
+            if userConfig.currentSelectRareFixedId ~= nil then
+                local rarityName = nestRarityEnum.fixedIdToContent[userConfig.currentSelectRareFixedId]
+                -- find the index of rarityName in nestRarityEnum.content
+                for idx, name in ipairs(nestRarityEnum.content) do
+                    if name == rarityName then
+                        comboSelectedIdx = idx
+                        break
+                    end
+                end
+            end
+
+            comboChanged, comboSelectedIdx = imgui.combo("##NestRarityCombo", comboSelectedIdx, nestRarityEnum.content)
+            if comboChanged then
+                local selectedRarityFixedId = nestRarityEnum.contentToFixedId[nestRarityEnum.content[comboSelectedIdx]]
+                userConfig.currentSelectRareFixedId = selectedRarityFixedId
+                saveUserConfig()
+            end
+        end
+
+        checkedChanged, userConfig.enableLock = imgui.checkbox("Enable Lock", userConfig.enableLock)
         if checkedChanged then
             saveUserConfig()
         end

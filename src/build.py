@@ -18,7 +18,7 @@ FMM_CONFIG = {
     "homepage": "https://www.nexusmods.com/#",
 }
 # source file settings
-ORIGIN_LUA_FIEL = "src/lock_nest_to_max.lua"
+ORIGIN_LUA_FIEL = "src/nest_rarity_locker.lua"
 # action settings
 WORK_TEMP_DIR = ".temp"
 # save settings
@@ -45,7 +45,7 @@ def read_origin_lua() -> tuple[str, str]:
 def create_release_lua() -> tuple[str, str]:
     lua_str, mod_ver = read_origin_lua()
     # save lua file
-    save_path = os.path.join(LUA_SAVE_DIR, f"lock_nest_to_max.lua")
+    save_path = os.path.join(LUA_SAVE_DIR, f"nest_rarity_locker.lua")
     with open(save_path, "w", encoding="utf-8") as f:
         f.write(lua_str)
     return lua_str, mod_ver
