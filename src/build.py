@@ -97,7 +97,7 @@ def create_zip(
         "{}_{}".format(file_name_prefix, mod_version),
         "zip",
         root_dir=WORK_TEMP_DIR,
-        base_dir="..",
+        base_dir=".",
     )
 
 
