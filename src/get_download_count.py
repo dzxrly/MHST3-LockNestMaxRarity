@@ -3,10 +3,10 @@ from datetime import datetime, timezone, timedelta
 import requests
 import yaml
 
-NEXUSMODS_GAME_4095_CSV = (
-    "https://staticstats.nexusmods.com/live_download_counts/mods/6993.csv"
+NEXUSMODS_GAME_CSV = (
+    "https://staticstats.nexusmods.com/live_download_counts/mods/8810.csv"
 )
-MOD_INDEX = 102
+MOD_INDEX = 5
 
 
 def get_content_by_requests(
@@ -69,7 +69,7 @@ def number_formatter(
 if __name__ == "__main__":
     try:
         response = get_content_by_requests(
-            NEXUSMODS_GAME_4095_CSV,
+            NEXUSMODS_GAME_CSV,
             decode=True,
         )
         total_download_count = -1
