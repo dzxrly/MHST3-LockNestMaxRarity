@@ -15,7 +15,7 @@ FMM_CONFIG = {
     "author": ", ".join(CONTRIBUTORS),
     "screenshot": "src/assets/screenshot.png",
     "category": "Gameplay",
-    "homepage": "https://www.nexusmods.com/monsterhunterstories3twistedreflection/mods/6",
+    "homepage": "https://www.nexusmods.com/monsterhunterstories3twistedreflection/mods/5",
 }
 # source file settings
 ORIGIN_LUA_FIEL = "src/nest_rarity_locker.lua"
