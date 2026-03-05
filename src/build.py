@@ -11,11 +11,11 @@ CONTRIBUTORS = [
 
 FMM_CONFIG = {
     "name": "Nest Rarity Locker",
-    "description": "A mod for Monster Hunter Stories 3 that allows players to lock the nest rarity to the maximum level.",
+    "description": "A mod for Monster Hunter Stories 3 that allows players to lock the nest rarity.",
     "author": ", ".join(CONTRIBUTORS),
     "screenshot": "src/assets/screenshot.png",
     "category": "Gameplay",
-    "homepage": "https://www.nexusmods.com/#",
+    "homepage": "https://www.nexusmods.com/monsterhunterstories3twistedreflection/mods/6",
 }
 # source file settings
 ORIGIN_LUA_FIEL = "src/nest_rarity_locker.lua"

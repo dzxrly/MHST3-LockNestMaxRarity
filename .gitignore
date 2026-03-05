@@ -45,5 +45,4 @@ release_notes.md
 *.sha256
 
 reframework
-*.zip
 .temp
