@@ -9,7 +9,6 @@ local nestRandom = "RANDOM"
 local nestTypeEnum = nil
 local nestRarityEnum = nil
 local nestTypeRandomFixedId = nil
-local nestMaxRartyFixedId = nil
 local checkedChanged = false
 local comboChanged = false
 local comboSelectedIdx = 1
