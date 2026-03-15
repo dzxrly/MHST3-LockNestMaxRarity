@@ -1,4 +1,4 @@
-local modVersion = "v0.2.0"
+local modVersion = "v1.0.0"
 
 local enumNone = "NONE"
 local enumMax = "MAX"
