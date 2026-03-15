@@ -23,7 +23,7 @@ A mod for `Monster Hunter Stories 3` that allows players to lock the nest rarity
 
 ## Requirements:
 
-- [REFramework](https://github.com/praydog/REFramework/releases) (≥ Nightly 01228)
+- [REFramework](https://github.com/praydog/REFramework-nightly/releases) (≥ Nightly 01298)
 
 ## Mod Download:
 
@@ -31,7 +31,7 @@ A mod for `Monster Hunter Stories 3` that allows players to lock the nest rarity
 
 ## How To Install:
 
-1. Install [REFramework](https://www.nexusmods.com/monsterhunterwilds/mods/93) (≥ Nightly 01228);
+1. Install [REFramework](https://github.com/praydog/REFramework-nightly/releases) (≥ Nightly 01298);
 2. Download the mod;
 3. Unzip the mod (**ALL FILES**) to the Monster Hunter Stories 3 **ROOT** directory.
 4. When you install correctly, there will be a file in your `./reframework`, and they are:
@@ -42,7 +42,7 @@ A mod for `Monster Hunter Stories 3` that allows players to lock the nest rarity
 
 ## 前置：
 
-- [REFramework](https://github.com/praydog/REFramework/releases) （≥ Nightly 01228）
+- [REFramework](https://github.com/praydog/REFramework-nightly/releases) （≥ Nightly 01298）
 
 ## MOD下载:
 
@@ -50,7 +50,7 @@ A mod for `Monster Hunter Stories 3` that allows players to lock the nest rarity
 
 ## 安装方式：
 
-1. 安装[REFramework](https://www.nexusmods.com/monsterhunterwilds/mods/93) （≥ Nightly 01228）；
+1. 安装[REFramework](https://github.com/praydog/REFramework-nightly/releases) （≥ Nightly 01298）；
 2. 下载MOD；
 3. 将MOD解压缩（**所有文件**）后存放至Monster Hunter Stories 3**根目录**；
 4. 当你正确安装MOD后，在你的 `./reframework` 目录下应该有一个文件：
