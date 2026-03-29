@@ -1,4 +1,4 @@
-local modVersion = "v1.0.0"
+local modVersion = "v1.1.0"
 
 local enumNone = "NONE"
 local enumMax = "MAX"
@@ -9,20 +9,23 @@ local nestRandom = "RANDOM"
 local nestTypeEnum = nil
 local nestRarityEnum = nil
 local nestTypeRandomFixedId = nil
-local checkedChanged = false
+local checkedLockChanged = false
+local checkedEnableDualEggChanged = false
 local comboChanged = false
 local comboSelectedIdx = 1
 local isLoadedUserConfig = false
+local dualEggCDataOriginals = {}
 
 local configPath = "NestRarityLocker.json"
 local userConfig = {
     enableLock = false,
-    currentSelectRareFixedId = nil
+    currentSelectRareFixedId = nil,
+    enableDualEggNest = false
 }
 
 local function isValidEnumName(enumName)
     return tostring(enumName) ~= enumNone and tostring(enumName) ~= enumMax and tostring(enumName) ~= enumUnknown and
-               tostring(enumName) ~= enumInvalid
+        tostring(enumName) ~= enumInvalid
 end
 
 local function appendEnumValue(enumState, enumName, enumValue)
@@ -63,6 +66,7 @@ local function readUserConfig()
         if jsonContent then
             userConfig.enableLock = jsonContent.enableLock
             userConfig.currentSelectRareFixedId = jsonContent.currentSelectRareFixedId
+            userConfig.enableDualEggNest = jsonContent.enableDualEggNest
         else
             json.dump_file(configPath, userConfig)
         end
@@ -107,7 +111,7 @@ re.on_application_entry("UpdateScene", function()
 end)
 
 sdk.hook(sdk.find_type_definition("app.NestController"):get_method(
-    "createContext(app.NestDef.NestPlaceData, app.NestDef.NEST_TYPE_Fixed, app.NestDef.NEST_RARITY_Fixed, System.Boolean, app.cBattleResult.cHomingInfo)"),
+        "createContext(app.NestDef.NestPlaceData, app.NestDef.NEST_TYPE_Fixed, app.NestDef.NEST_RARITY_Fixed, System.Boolean, app.cBattleResult.cHomingInfo)"),
     function(args)
         local originNestType = sdk.to_int64(args[4])
         local originNestRarity = sdk.to_int64(args[5])
@@ -118,6 +122,44 @@ sdk.hook(sdk.find_type_definition("app.NestController"):get_method(
             end
         end
     end, function(retval)
+        return retval
+    end)
+
+sdk.hook(sdk.find_type_definition("app.NestDungeonControllerData")
+    :get_method("setupFesData(app.user_data.NestTableData.cData)"),
+    function(args)
+        if userConfig.enableDualEggNest and nestTypeRandomFixedId ~= nil then
+            dualEggCDataOriginals = {}
+
+            local this = sdk.to_managed_object(args[2])
+            if not this then return end
+
+            local nestTableData = this:get_field("_NestTableUserData")
+            if not nestTableData then return end
+
+            local dataNum = nestTableData:call("getDataNum()")
+
+            for i = 0, dataNum - 1 do
+                local cData = sdk.to_managed_object(
+                    nestTableData:call("getDataByIndex(System.Int32)", i)
+                )
+                if cData and cData:get_field("_NestType") == nestTypeRandomFixedId then
+                    dualEggCDataOriginals[#dualEggCDataOriginals + 1] = {
+                        obj        = cData,
+                        EggFesRate = cData:get_field("_EggFesRate"),
+                    }
+                    cData:set_field("_EggFesRate", 100)
+                end
+            end
+        end
+    end,
+    function(retval)
+        if userConfig.enableDualEggNest and nestTypeRandomFixedId ~= nil then
+            for _, orig in ipairs(dualEggCDataOriginals) do
+                orig.obj:set_field("_EggFesRate", orig.EggFesRate)
+            end
+            dualEggCDataOriginals = {}
+        end
         return retval
     end)
 
@@ -147,8 +189,14 @@ re.on_draw_ui(function()
             end
         end
 
-        checkedChanged, userConfig.enableLock = imgui.checkbox("Enable Lock", userConfig.enableLock)
-        if checkedChanged then
+        checkedLockChanged, userConfig.enableLock = imgui.checkbox("Enable Lock", userConfig.enableLock)
+        if checkedLockChanged then
+            saveUserConfig()
+        end
+
+        checkedEnableDualEggChanged, userConfig.enableDualEggNest = imgui.checkbox("Force Dual-egg Nest",
+            userConfig.enableDualEggNest)
+        if checkedEnableDualEggChanged then
             saveUserConfig()
         end
 

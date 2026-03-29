@@ -1,1 +1,1 @@
-1. 更新v1.0.0版本以支持Full Release版本的游戏
+1. 现在可以锁定双蛋巢穴（Dual-egg Nest）刷新了
