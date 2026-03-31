@@ -1,20 +1,23 @@
-local modVersion = "v1.1.0"
+local modVersion = "v1.1.1"
 
 local enumNone = "NONE"
 local enumMax = "MAX"
 local enumUnknown = "UNKNOWN"
 local enumInvalid = "INVALID"
 local nestRandom = "RANDOM"
+local nestEggFes = "EGG"
 
 local nestTypeEnum = nil
 local nestRarityEnum = nil
+local nestFesTypeEnum = nil
+
 local nestTypeRandomFixedId = nil
+local nestEggFesId = nil
 local checkedLockChanged = false
 local checkedEnableDualEggChanged = false
 local comboChanged = false
 local comboSelectedIdx = 1
 local isLoadedUserConfig = false
-local dualEggCDataOriginals = {}
 
 local configPath = "NestRarityLocker.json"
 local userConfig = {
@@ -97,11 +100,20 @@ re.on_application_entry("UpdateScene", function()
             fixedId = {},
             content = {}
         }
+        nestFesTypeEnum = {
+            fixedIdToContent = {},
+            contentToFixedId = {},
+            fixedId = {},
+            content = {}
+        }
         parseEnumFields("app.NestDef.NEST_TYPE_Fixed", nestTypeEnum, false)
         parseEnumFields("app.NestDef.NEST_RARITY_Fixed", nestRarityEnum, false)
+        parseEnumFields("app.NestDef.FES_TYPE", nestFesTypeEnum, false)
 
         nestTypeRandomFixedId = nestTypeEnum.contentToFixedId[nestRandom]
         print("Random Nest Type Fixed ID: ", nestTypeRandomFixedId)
+        nestEggFesId = nestFesTypeEnum.contentToFixedId[nestEggFes]
+        print("Egg Fes Type ID: ", nestEggFesId)
     end
 
     if not isLoadedUserConfig then
@@ -125,40 +137,18 @@ sdk.hook(sdk.find_type_definition("app.NestController"):get_method(
         return retval
     end)
 
+local _this = nil
 sdk.hook(sdk.find_type_definition("app.NestDungeonControllerData")
     :get_method("setupFesData(app.user_data.NestTableData.cData)"),
     function(args)
-        if userConfig.enableDualEggNest and nestTypeRandomFixedId ~= nil then
-            dualEggCDataOriginals = {}
-
-            local this = sdk.to_managed_object(args[2])
-            if not this then return end
-
-            local nestTableData = this:get_field("_NestTableUserData")
-            if not nestTableData then return end
-
-            local dataNum = nestTableData:call("getDataNum()")
-
-            for i = 0, dataNum - 1 do
-                local cData = sdk.to_managed_object(
-                    nestTableData:call("getDataByIndex(System.Int32)", i)
-                )
-                if cData and cData:get_field("_NestType") == nestTypeRandomFixedId then
-                    dualEggCDataOriginals[#dualEggCDataOriginals + 1] = {
-                        obj        = cData,
-                        EggFesRate = cData:get_field("_EggFesRate"),
-                    }
-                    cData:set_field("_EggFesRate", 100)
-                end
-            end
-        end
+        _this = sdk.to_managed_object(args[2])
     end,
     function(retval)
-        if userConfig.enableDualEggNest and nestTypeRandomFixedId ~= nil then
-            for _, orig in ipairs(dualEggCDataOriginals) do
-                orig.obj:set_field("_EggFesRate", orig.EggFesRate)
-            end
-            dualEggCDataOriginals = {}
+        if _this ~= nil and
+            userConfig.enableDualEggNest and
+            nestEggFesId ~= nil
+        then
+            _this:call("set_FesType(app.NestDef.FES_TYPE)", nestEggFesId)
         end
         return retval
     end)
