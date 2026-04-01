@@ -1,4 +1,4 @@
-local modVersion = "v1.1.1"
+local modVersion = "v1.1.2"
 
 local enumNone = "NONE"
 local enumMax = "MAX"
@@ -142,6 +142,16 @@ sdk.hook(sdk.find_type_definition("app.NestDungeonControllerData")
     :get_method("setupFesData(app.user_data.NestTableData.cData)"),
     function(args)
         _this = sdk.to_managed_object(args[2])
+        local nestStageData = _this:call("get_NestStageData()")
+        if nestStageData ~= nil then
+            local nestTypeFixedId = nestStageData:call("get_NestTypeFixed()")
+            if nestTypeFixedId ~= nil then
+                if nestTypeFixedId ~= nestTypeRandomFixedId then
+                    print("Nest Type Fixed ID is not random")
+                    _this = nil
+                end
+            end
+        end
     end,
     function(retval)
         if _this ~= nil and
