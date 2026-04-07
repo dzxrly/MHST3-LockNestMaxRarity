@@ -1,30 +1,72 @@
-local modVersion = "v1.1.2"
+local modVersion = "v1.2.0"
 
 local enumNone = "NONE"
 local enumMax = "MAX"
 local enumUnknown = "UNKNOWN"
 local enumInvalid = "INVALID"
 local nestRandom = "RANDOM"
-local nestEggFes = "EGG"
+local nestFesChoices = {
+    { label = "Dual-Egg",     fesType = "EGG" },
+    { label = "Reward Chest", fesType = "POP" },
+    { label = "Cat",          fesType = "CAT" }
+}
+local nestFesComboItems = {}
+for _, choice in ipairs(nestFesChoices) do
+    table.insert(nestFesComboItems, choice.label)
+end
 
 local nestTypeEnum = nil
 local nestRarityEnum = nil
 local nestFesTypeEnum = nil
 
 local nestTypeRandomFixedId = nil
-local nestEggFesId = nil
 local checkedLockChanged = false
 local checkedEnableDualEggChanged = false
 local comboChanged = false
 local comboSelectedIdx = 1
+local fesComboChanged = false
+local fesComboSelectedIdx = 1
 local isLoadedUserConfig = false
 
 local configPath = "NestRarityLocker.json"
 local userConfig = {
     enableLock = false,
     currentSelectRareFixedId = nil,
-    enableDualEggNest = false
+    enableDualEggNest = false,
+    selectedNestFes = nestFesChoices[1].fesType
 }
+
+local function getDefaultNestFesType()
+    return nestFesChoices[1].fesType
+end
+
+local function isSupportedNestFesType(fesType)
+    for _, choice in ipairs(nestFesChoices) do
+        if choice.fesType == fesType then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function findNestFesChoiceIndex(fesType)
+    for idx, choice in ipairs(nestFesChoices) do
+        if choice.fesType == fesType then
+            return idx
+        end
+    end
+
+    return 1
+end
+
+local function saveUserConfig()
+    if json ~= nil then
+        json.dump_file(configPath, userConfig)
+    else
+        print("JSON library not found. User configuration will not be saved.")
+    end
+end
 
 local function isValidEnumName(enumName)
     return tostring(enumName) ~= enumNone and tostring(enumName) ~= enumMax and tostring(enumName) ~= enumUnknown and
@@ -67,20 +109,31 @@ local function readUserConfig()
     if json ~= nil then
         local jsonContent = json.load_file(configPath)
         if jsonContent then
-            userConfig.enableLock = jsonContent.enableLock
+            local isConfigUpdated = false
+
+            userConfig.enableLock = jsonContent.enableLock == true
             userConfig.currentSelectRareFixedId = jsonContent.currentSelectRareFixedId
-            userConfig.enableDualEggNest = jsonContent.enableDualEggNest
+            userConfig.enableDualEggNest = jsonContent.enableDualEggNest == true
+
+            local selectedNestFes = jsonContent.selectedNestFes
+            if selectedNestFes == nil and jsonContent.selectedFesType ~= nil then
+                selectedNestFes = jsonContent.selectedFesType
+                isConfigUpdated = true
+            end
+
+            if isSupportedNestFesType(selectedNestFes) then
+                userConfig.selectedNestFes = selectedNestFes
+            else
+                userConfig.selectedNestFes = getDefaultNestFesType()
+                isConfigUpdated = true
+            end
+
+            if isConfigUpdated then
+                saveUserConfig()
+            end
         else
             json.dump_file(configPath, userConfig)
         end
-    else
-        print("JSON library not found. User configuration will not be saved.")
-    end
-end
-
-local function saveUserConfig()
-    if json ~= nil then
-        json.dump_file(configPath, userConfig)
     else
         print("JSON library not found. User configuration will not be saved.")
     end
@@ -112,8 +165,6 @@ re.on_application_entry("UpdateScene", function()
 
         nestTypeRandomFixedId = nestTypeEnum.contentToFixedId[nestRandom]
         print("Random Nest Type Fixed ID: ", nestTypeRandomFixedId)
-        nestEggFesId = nestFesTypeEnum.contentToFixedId[nestEggFes]
-        print("Egg Fes Type ID: ", nestEggFesId)
     end
 
     if not isLoadedUserConfig then
@@ -142,23 +193,18 @@ sdk.hook(sdk.find_type_definition("app.NestDungeonControllerData")
     :get_method("setupFesData(app.user_data.NestTableData.cData)"),
     function(args)
         _this = sdk.to_managed_object(args[2])
-        local nestStageData = _this:call("get_NestStageData()")
-        if nestStageData ~= nil then
-            local nestTypeFixedId = nestStageData:call("get_NestTypeFixed()")
-            if nestTypeFixedId ~= nil then
-                if nestTypeFixedId ~= nestTypeRandomFixedId then
-                    print("Nest Type Fixed ID is not random")
-                    _this = nil
-                end
-            end
-        end
     end,
     function(retval)
+        local selectedNestFesId = nil
+        if nestFesTypeEnum ~= nil and nestFesTypeEnum.contentToFixedId ~= nil then
+            selectedNestFesId = nestFesTypeEnum.contentToFixedId[userConfig.selectedNestFes]
+        end
+
         if _this ~= nil and
             userConfig.enableDualEggNest and
-            nestEggFesId ~= nil
+            selectedNestFesId ~= nil
         then
-            _this:call("set_FesType(app.NestDef.FES_TYPE)", nestEggFesId)
+            _this:call("set_FesType(app.NestDef.FES_TYPE)", selectedNestFesId)
         end
         return retval
     end)
@@ -194,10 +240,28 @@ re.on_draw_ui(function()
             saveUserConfig()
         end
 
-        checkedEnableDualEggChanged, userConfig.enableDualEggNest = imgui.checkbox("Force Dual-egg Nest",
+        checkedEnableDualEggChanged, userConfig.enableDualEggNest = imgui.checkbox("Enable Nest FES Lock",
             userConfig.enableDualEggNest)
         if checkedEnableDualEggChanged then
             saveUserConfig()
+        end
+
+        if nestFesTypeEnum ~= nil then
+            local currentFesType = userConfig.selectedNestFes
+            fesComboSelectedIdx = findNestFesChoiceIndex(currentFesType)
+
+            fesComboChanged, fesComboSelectedIdx = imgui.combo("Lock Nest FES Type##NestFesTypeCombo",
+                fesComboSelectedIdx,
+                nestFesComboItems)
+
+            if fesComboChanged then
+                local selectedChoice = nestFesChoices[fesComboSelectedIdx]
+                local selectedFesType = selectedChoice ~= nil and selectedChoice.fesType or nil
+                if isSupportedNestFesType(selectedFesType) then
+                    userConfig.selectedNestFes = selectedFesType
+                    saveUserConfig()
+                end
+            end
         end
 
         imgui.tree_pop()
